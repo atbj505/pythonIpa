@@ -12,9 +12,8 @@ import os
 import smtplib
 import sys
 
-# ipa相关参数
+# ipa参数
 ipaRootDir = "/Users/" + getpass.getuser() + "/Desktop/"
-ipaTargetName = None
 ipaFileDir = datetime.datetime.today().strftime(
     "%Y-%m-%d-%H-%M-%S")
 
@@ -23,6 +22,9 @@ emailFromUser = None
 emailToUser = None
 emailPassword = None
 emailHost = None
+
+# 项目参数
+projectTargetName = None
 
 
 def gitPull():
@@ -65,7 +67,7 @@ def getConfig():
             print('emailPassword:' + emailPassword)
             print('emailHost:' + emailHost)
     global ipaFileDir
-    ipaFileDir += ('-' + ipaTargetName + '/')
+    ipaFileDir += ('-' + projectTargetName + '/')
 
 
 def setConfig(path):
@@ -81,7 +83,6 @@ def setConfig(path):
 
     if emailFromUser == '' or emailToUser == '' or emailPassword == '' or emailHost == '':
         raise ValueError('Please Enter Valid Setting')
-        sys.exit(0)
 
     config = configparser.ConfigParser()
     config.add_section('Settings')
@@ -99,21 +100,25 @@ def setConfig(path):
 
 
 def getTargetName():
-    files = os.listdir(os.getcwd())
-    for file in files:
+    dirs = os.listdir(os.getcwd())
+    global projectTargetName
+
+    for file in dirs:
         if '.xcodeproj' in file:
             name, extend = file.split('.')
-            global ipaTargetName
-            ipaTargetName = name
+            projectTargetName = name
+
+    if not projectTargetName:
+        raise Exception('Can Not Find .xcodeproj file')
     print('*========================*')
-    print('TargetName:%s' % (ipaTargetName))
+    print('TargetName:%s' % (projectTargetName))
 
 
 def cleanProject():
     print('*========================*')
     print('Clean Project Start')
     os.system('xcodebuild -workspace %(x)s.xcworkspace -scheme %(x)s clean' %
-              {'x': ipaTargetName})
+              {'x': projectTargetName})
     input('Press Any Key To Continue')
 
 
@@ -121,7 +126,7 @@ def buildProject():
     print('*========================*')
     print('Build Project Start')
     os.system('xcodebuild -workspace %(x)s.xcworkspace -scheme %(x)s build' %
-              {'x': ipaTargetName})
+              {'x': projectTargetName})
     input('Press Any Key To Continue')
 
 
@@ -129,10 +134,10 @@ def archiveProject():
     print('*========================*')
     print('Archive Project Start')
     os.system('xcodebuild -workspace %(x)s.xcworkspace -scheme %(x)s archive -configuration Release -archivePath %(y)s.xcarchive' %
-              {'x': ipaTargetName, 'y': ipaRootDir + ipaFileDir + ipaTargetName})
+              {'x': projectTargetName, 'y': ipaRootDir + ipaFileDir + projectTargetName})
     input('Press Any Key To Continue')
     os.system('xcodebuild -exportArchive -archivePath %(x)s.xcarchive -exportPath %(x)s.ipa -exportFormat IPA' %
-              {'x': ipaRootDir + ipaFileDir + ipaTargetName})
+              {'x': ipaRootDir + ipaFileDir + projectTargetName})
     input('Press Any Key To Continue')
 
 
