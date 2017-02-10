@@ -22,6 +22,7 @@ emailFromUser = None
 emailToUser = None
 emailPassword = None
 emailHost = None
+emailBodyText = None
 
 # 项目参数
 projectTargetName = None
@@ -99,6 +100,30 @@ def setConfig(path):
         raise e
 
 
+def removeConfig():
+    os.system('rm Setting.ini')
+
+
+def setOptParse():
+    p = optparse.OptionParser()
+
+    p.add_option("-m", "--message", action="store_true",
+                 default=None, help="enter email body text")
+    p.add_option("-r", "--remove", action="store_true",
+                 default=None, help="remove config file")
+
+    options, arguments = p.parse_args()
+
+    if options.message and len(arguments):
+        global emailBodyText
+        emailBodyText = ''.join(arguments)
+    else:
+        raise ValueError('Please Enter The Email Body Text')
+
+    if options.remove:
+        removeConfig()
+
+
 def getTargetName():
     dirs = os.listdir(os.getcwd())
     global projectTargetName
@@ -141,9 +166,31 @@ def archiveProject():
     input('Press Any Key To Continue')
 
 
+def sendMail(to_addr, from_addr, subject,  body_text):
+    print('*========================*')
+    print('Send Mail Start')
+    msg = email.mime.multipart.MIMEMultipart()
+    msg['from'] = from_addr
+    msg['to'] = ', '.join(to_addr)
+    msg['subject'] = subject
+
+    print(msg['to'])
+
+    txt = email.mime.text.MIMEText(body_text)
+    msg.attach(txt)
+
+    server = smtplib.SMTP('mail.idengyun.com')
+    server.login(from_addr, emailPassword)
+    server.sendmail(from_addr, to_addr, str(msg))
+    server.quit()
+
+    input('Press Any Key To Continue')
+
+
 def main():
     print('*========================*')
     print('Create Ipa Start')
+    setOptParse()
     getTargetName()
     getConfig()
     mkdir()
@@ -151,6 +198,7 @@ def main():
     cleanProject()
     buildProject()
     archiveProject()
+    sendMail(emailToUser, emailFromUser, ipaFileDir, emailBodyText)
 
 if __name__ == '__main__':
     main()
