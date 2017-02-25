@@ -5,7 +5,6 @@ import configparser
 import datetime
 import email.mime.multipart
 import email.mime.text
-import ftplib
 import getpass
 import optparse
 import os
@@ -166,6 +165,10 @@ def archiveProject():
     input('Press Any Key To Continue')
 
 
+def uploadFir():
+    pass
+
+
 def sendMail(to_addr, from_addr, subject,  body_text):
     print('*========================*')
     print('Send Mail Start')
@@ -194,10 +197,11 @@ def main():
     getTargetName()
     getConfig()
     mkdir()
-    # gitPull()
+    gitPull()
     cleanProject()
     buildProject()
     archiveProject()
+    uploadFir()
     sendMail(emailToUser, emailFromUser, ipaFileDir, emailBodyText)
 
 if __name__ == '__main__':
