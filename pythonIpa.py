@@ -34,11 +34,13 @@ def gitPull():
     print('*========================*')
     print('Git Pull Start')
     os.system('git pull origin dev')
+    input('Press Any Key To Continue')
 
 
 def mkdir():
     if not os.path.exists(ipaRootDir + ipaFileDir):
         os.system('cd %s;mkdir %s' % (ipaRootDir, ipaFileDir))
+    os.system("chmod -R 777 %s" % ipaRootDir + ipaFileDir)
 
 
 def getConfig():
@@ -120,7 +122,7 @@ def setOptParse():
 
     if options.message and len(arguments):
         global emailBodyText
-        emailBodyText = ''.join(arguments)
+        emailBodyText = arguments[0]
     # else:
     #     raise ValueError('Please Enter The Email Body Text')
 
@@ -129,7 +131,7 @@ def setOptParse():
 
     if options.changelog and len(arguments):
         global projectChangeLog
-        projectChangeLog = ''.join(arguments)
+        projectChangeLog = arguments[1]
     else:
         raise ValueError('Please Enter The ChangeLog')
 
@@ -178,25 +180,28 @@ def buildProject():
 def archiveProject():
     print('*========================*')
     print('Archive Project Start')
+
     if isWorkSpace:
         os.system('fir build_ipa %(x)s.xcworkspace -o %(y)s -w -S %(x)s' %
-                  {'x': projectTargetName, 'y': ipaFileDir})
+                  {'x': projectTargetName, 'y': ipaRootDir + ipaFileDir})
     else:
         os.system('fir build_ipa %(x)s.xcworkspace -o %(y)s' %
-                  {'x': projectTargetName, 'y': ipaFileDir})
+                  {'x': projectTargetName, 'y': ipaRootDir + ipaFileDir})
     input('Press Any Key To Continue')
 
 
 def uploadToFir():
     print('*========================*')
-    print('Archive Project Start')
-    dirs = os.listdir(ipaFileDir)
+    print('UploadToFir Project Start')
+    dirs = os.listdir(ipaRootDir + ipaFileDir)
     ipaPath = None
     for file in dirs:
         if '.ipa' in file:
-            ipaPath = ipaFileDir + '/' + file
-    os.system('fir publish %(x)s -c "%(y)s" -Q' %
-              {'x': ipaPath, 'y': projectChangeLog})
+            ipaPath = ipaRootDir + ipaFileDir + file
+            os.system('fir publish %(x)s -c "%(y)s" -Q' %
+                      {'x': ipaPath, 'y': projectChangeLog})
+    else:
+        print("Can't find IPA")
 
     input('Press Any Key To Continue')
 
@@ -209,21 +214,28 @@ def sendMail(to_addr, from_addr, subject, body_text):
     msg['to'] = to_addr
     msg['subject'] = subject
 
-    print(msg['to'])
+    print('To:', msg['to'])
 
     txt = email.mime.text.MIMEText(body_text + '\n' + projectChangeLog)
     msg.attach(txt)
 
-    with open('fir-' + projectTargetName + '.png', 'r') as target:
-        image = email.mine.image.MIMEImage(fp.read())
-        msg.attach(image)
+    dirs = os.listdir(ipaRootDir + ipaFileDir)
 
-    server = smtplib.SMTP('mail.idengyun.com')
+    for file in dirs:
+        if '.png' in file:
+            with open(ipaRootDir + ipaFileDir + file, 'rb') as fileHandler:
+                image = email.mime.image.MIMEImage(fileHandler.read())
+                msg.attach(image)
+    else:
+        print("Can't find Qrcode Image")
+
+    server = smtplib.SMTP(emailHost)
     server.login(from_addr, emailPassword)
     server.sendmail(from_addr, to_addr, str(msg))
     server.quit()
 
-    input('Press Any Key To Continue')
+    print('Create Ipa Finish')
+    print('*========================*')
 
 
 def main():
