@@ -121,8 +121,8 @@ def setOptParse():
     if options.message and len(arguments):
         global emailBodyText
         emailBodyText = ''.join(arguments)
-    else:
-        raise ValueError('Please Enter The Email Body Text')
+    # else:
+    #     raise ValueError('Please Enter The Email Body Text')
 
     if options.remove:
         removeConfig()
@@ -206,7 +206,7 @@ def sendMail(to_addr, from_addr, subject, body_text):
     print('Send Mail Start')
     msg = email.mime.multipart.MIMEMultipart()
     msg['from'] = from_addr
-    msg['to'] = ', '.join(to_addr)
+    msg['to'] = to_addr
     msg['subject'] = subject
 
     print(msg['to'])
