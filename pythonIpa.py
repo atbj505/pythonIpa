@@ -1,4 +1,3 @@
-# /usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 import configparser
@@ -6,6 +5,8 @@ import datetime
 import email.mime.image
 import email.mime.multipart
 import email.mime.text
+import email.mime.base
+import email.encoders
 import getpass
 import optparse
 import os
@@ -200,8 +201,7 @@ def uploadToFir():
             ipaPath = ipaRootDir + ipaFileDir + file
             os.system('fir publish %(x)s -c "%(y)s" -Q' %
                       {'x': ipaPath, 'y': projectChangeLog})
-    else:
-        print("Can't find IPA")
+            break
 
     input('Press Any Key To Continue')
 
@@ -224,14 +224,22 @@ def sendMail(to_addr, from_addr, subject, body_text):
     for file in dirs:
         if '.png' in file:
             with open(ipaRootDir + ipaFileDir + file, 'rb') as fileHandler:
-                image = email.mime.image.MIMEImage(fileHandler.read())
+                # image = email.mime.image.MIMEImage(fileHandler.read())
+                # image.add_header('Content-ID', 'image1')
+                # msg.attach(image)
+                image = email.mime.base.MIMEBase('image', 'png', filename=file)
+                image.add_header('Content-Disposition',
+                                 'attachment', filename=file)
+                image.add_header('Content-ID', '<0>')
+                image.add_header('X-Attachment-Id', '0')
+                image.set_payload(fileHandler.read())
+                email.encoders.encode_base64(image)
                 msg.attach(image)
-    else:
-        print("Can't find Qrcode Image")
+            break
 
     server = smtplib.SMTP(emailHost)
     server.login(from_addr, emailPassword)
-    server.sendmail(from_addr, to_addr, str(msg))
+    server.sendmail(from_addr, to_addr.split(','), str(msg))
     server.quit()
 
     print('Create Ipa Finish')
