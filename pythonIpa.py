@@ -3,6 +3,7 @@
 
 import configparser
 import datetime
+import email.mime.image
 import email.mime.multipart
 import email.mime.text
 import getpass
@@ -25,6 +26,8 @@ emailBodyText = None
 
 # 项目参数
 projectTargetName = None
+projectChangeLog = None
+isWorkSpace = False
 
 
 def gitPull():
@@ -110,6 +113,8 @@ def setOptParse():
                  default=None, help="enter email body text")
     p.add_option("-r", "--remove", action="store_true",
                  default=None, help="remove config file")
+    p.add_option("-c", "--changelog", action="store_true",
+                 default=None, help="enter changelog")
 
     options, arguments = p.parse_args()
 
@@ -122,6 +127,12 @@ def setOptParse():
     if options.remove:
         removeConfig()
 
+    if options.changelog and len(arguments):
+        global projectChangeLog
+        projectChangeLog = ''.join(arguments)
+    else:
+        raise ValueError('Please Enter The ChangeLog')
+
 
 def getTargetName():
     dirs = os.listdir(os.getcwd())
@@ -132,6 +143,10 @@ def getTargetName():
             name, extend = file.split('.')
             projectTargetName = name
 
+        if '.xcworkspace' in file:
+            global isWorkSpace
+            isWorkSpace = True
+
     if not projectTargetName:
         raise Exception('Can Not Find .xcodeproj file')
     print('*========================*')
@@ -141,35 +156,52 @@ def getTargetName():
 def cleanProject():
     print('*========================*')
     print('Clean Project Start')
-    os.system('xcodebuild -workspace %(x)s.xcworkspace -scheme %(x)s clean' %
-              {'x': projectTargetName})
+    if isWorkSpace:
+        os.system('xcodebuild -workspace %(x)s.xcworkspace -scheme %(x)s clean' %
+                  {'x': projectTargetName})
+    else:
+        os.system('xcodebuild clean')
     input('Press Any Key To Continue')
 
 
 def buildProject():
     print('*========================*')
     print('Build Project Start')
-    os.system('xcodebuild -workspace %(x)s.xcworkspace -scheme %(x)s build' %
-              {'x': projectTargetName})
+    if isWorkSpace:
+        os.system('xcodebuild -workspace %(x)s.xcworkspace -scheme %(x)s build' %
+                  {'x': projectTargetName})
+    else:
+        os.system('xcodebuild build')
     input('Press Any Key To Continue')
 
 
 def archiveProject():
     print('*========================*')
     print('Archive Project Start')
-    os.system('xcodebuild -workspace %(x)s.xcworkspace -scheme %(x)s archive -configuration Release -archivePath %(y)s.xcarchive' %
-              {'x': projectTargetName, 'y': ipaRootDir + ipaFileDir + projectTargetName})
+    if isWorkSpace:
+        os.system('fir build_ipa %(x)s.xcworkspace -o %(y)s -w -S %(x)s' %
+                  {'x': projectTargetName, 'y': ipaFileDir})
+    else:
+        os.system('fir build_ipa %(x)s.xcworkspace -o %(y)s' %
+                  {'x': projectTargetName, 'y': ipaFileDir})
     input('Press Any Key To Continue')
-    os.system('xcodebuild -exportArchive -archivePath %(x)s.xcarchive -exportPath %(x)s.ipa -exportFormat IPA' %
-              {'x': ipaRootDir + ipaFileDir + projectTargetName})
+
+
+def uploadToFir():
+    print('*========================*')
+    print('Archive Project Start')
+    dirs = os.listdir(ipaFileDir)
+    ipaPath = None
+    for file in dirs:
+        if '.ipa' in file:
+            ipaPath = ipaFileDir + '/' + file
+    os.system('fir publish %(x)s -c "%(y)s" -Q' %
+              {'x': ipaPath, 'y': projectChangeLog})
+
     input('Press Any Key To Continue')
 
 
-def uploadFir():
-    pass
-
-
-def sendMail(to_addr, from_addr, subject,  body_text):
+def sendMail(to_addr, from_addr, subject, body_text):
     print('*========================*')
     print('Send Mail Start')
     msg = email.mime.multipart.MIMEMultipart()
@@ -179,8 +211,12 @@ def sendMail(to_addr, from_addr, subject,  body_text):
 
     print(msg['to'])
 
-    txt = email.mime.text.MIMEText(body_text)
+    txt = email.mime.text.MIMEText(body_text + '\n' + projectChangeLog)
     msg.attach(txt)
+
+    with open('fir-' + projectTargetName + '.png', 'r') as target:
+        image = email.mine.image.MIMEImage(fp.read())
+        msg.attach(image)
 
     server = smtplib.SMTP('mail.idengyun.com')
     server.login(from_addr, emailPassword)
@@ -201,7 +237,7 @@ def main():
     cleanProject()
     buildProject()
     archiveProject()
-    uploadFir()
+    uploadToFir()
     sendMail(emailToUser, emailFromUser, ipaFileDir, emailBodyText)
 
 if __name__ == '__main__':
