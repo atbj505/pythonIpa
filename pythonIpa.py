@@ -2,11 +2,11 @@
 
 import configparser
 import datetime
+import email.encoders
+import email.mime.base
 import email.mime.image
 import email.mime.multipart
 import email.mime.text
-import email.mime.base
-import email.encoders
 import getpass
 import optparse
 import os
