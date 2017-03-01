@@ -30,12 +30,15 @@ projectTargetName = None
 projectChangeLog = None
 isWorkSpace = False
 
+isExcuteStepByStep = False
+
 
 def gitPull():
     print('*========================*')
     print('Git Pull Start')
     os.system('git pull origin dev')
-    input('Press Any Key To Continue')
+    if isExcuteStepByStep:
+        input('Press Any Key To Continue')
 
 
 def mkdir():
@@ -106,35 +109,40 @@ def setConfig(path):
 
 
 def removeConfig():
-    os.system('rm Setting.ini')
+    if 'Setting.ini' in os.listdir():
+        os.system('rm Setting.ini')
 
 
 def setOptParse():
     p = optparse.OptionParser()
 
-    p.add_option("-m", "--message", action="store_true",
+    p.add_option("-m", "--message", action="store",
                  default=None, help="enter email body text")
     p.add_option("-r", "--remove", action="store_true",
                  default=None, help="remove config file")
-    p.add_option("-c", "--changelog", action="store_true",
+    p.add_option("-c", "--changelog", action="store",
                  default=None, help="enter changelog")
+    p.add_option("-s", "--step", action="store_true",
+                 default=None, help="excute step by step")
 
     options, arguments = p.parse_args()
 
-    if options.message and len(arguments):
+    if options.message:
         global emailBodyText
-        emailBodyText = arguments[0]
-    # else:
-    #     raise ValueError('Please Enter The Email Body Text')
+        emailBodyText = options.message
 
     if options.remove:
         removeConfig()
 
-    if options.changelog and len(arguments):
+    if options.changelog:
         global projectChangeLog
-        projectChangeLog = arguments[1]
+        projectChangeLog = options.changelog
     else:
         raise ValueError('Please Enter The ChangeLog')
+
+    if options.step:
+        global isExcuteStepByStep
+        isExcuteStepByStep = True
 
 
 def getTargetName():
@@ -164,7 +172,8 @@ def cleanProject():
                   {'x': projectTargetName})
     else:
         os.system('xcodebuild clean')
-    input('Press Any Key To Continue')
+    if isExcuteStepByStep:
+        input('Press Any Key To Continue')
 
 
 def buildProject():
@@ -175,7 +184,9 @@ def buildProject():
                   {'x': projectTargetName})
     else:
         os.system('xcodebuild build')
-    input('Press Any Key To Continue')
+
+    if isExcuteStepByStep:
+        input('Press Any Key To Continue')
 
 
 def archiveProject():
@@ -188,25 +199,30 @@ def archiveProject():
     else:
         os.system('fir build_ipa %(x)s.xcworkspace -o %(y)s' %
                   {'x': projectTargetName, 'y': ipaRootDir + ipaFileDir})
-    input('Press Any Key To Continue')
+
+    if isExcuteStepByStep:
+        input('Press Any Key To Continue')
 
 
 def uploadToFir():
     print('*========================*')
     print('UploadToFir Project Start')
     dirs = os.listdir(ipaRootDir + ipaFileDir)
-    ipaPath = None
+    downloadUrl = None
     for file in dirs:
         if '.ipa' in file:
             ipaPath = ipaRootDir + ipaFileDir + file
-            os.system('fir publish %(x)s -c "%(y)s" -Q' %
-                      {'x': ipaPath, 'y': projectChangeLog})
+            ret = os.popen('fir publish %(x)s -c "%(y)s" -Q' %
+                           {'x': ipaPath, 'y': projectChangeLog})
+            for info in ret.readlines():
+                if "Published succeed" in info:
+                    downloadUrl = info[info.find('http'):]
+                    break
             break
+    return downloadUrl
 
-    input('Press Any Key To Continue')
 
-
-def sendMail(to_addr, from_addr, subject, body_text):
+def sendMail(to_addr, from_addr, subject, body_text, downloadUrl):
     print('*========================*')
     print('Send Mail Start')
     msg = email.mime.multipart.MIMEMultipart()
@@ -216,7 +232,8 @@ def sendMail(to_addr, from_addr, subject, body_text):
 
     print('To:', msg['to'])
 
-    txt = email.mime.text.MIMEText(body_text + '\n' + projectChangeLog)
+    txt = email.mime.text.MIMEText(
+        body_text + '\n' + projectChangeLog + '\n' + downloadUrl)
     msg.attach(txt)
 
     dirs = os.listdir(ipaRootDir + ipaFileDir)
@@ -257,8 +274,9 @@ def main():
     cleanProject()
     buildProject()
     archiveProject()
-    uploadToFir()
-    sendMail(emailToUser, emailFromUser, ipaFileDir, emailBodyText)
+    downloadUrl = uploadToFir()
+    sendMail(emailToUser, emailFromUser,
+             ipaFileDir, emailBodyText, downloadUrl)
 
 if __name__ == '__main__':
     main()
