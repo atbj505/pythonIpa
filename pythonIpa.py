@@ -30,6 +30,7 @@ projectTargetName = None
 projectChangeLog = None
 isWorkSpace = False
 
+keychainPassword = None
 isExcuteStepByStep = False
 
 
@@ -47,6 +48,11 @@ def mkdir():
     os.system("chmod -R 777 %s" % ipaRootDir + ipaFileDir)
 
 
+def keychainUnlock():
+    os.system("security unlock-keychain -p '%s' %s" %
+              (keychainPassword, "~/Library/Keychains/login.keychain"))
+
+
 def getConfig():
     if not os.path.exists('Setting.ini'):
         print('*========================*')
@@ -58,6 +64,7 @@ def getConfig():
             global emailToUser
             global emailPassword
             global emailHost
+            global keychainPassword
 
             config = configparser.ConfigParser()
             config.read('Setting.ini')
@@ -65,6 +72,7 @@ def getConfig():
             emailToUser = config.get('Settings', 'emailToUser')
             emailPassword = config.get('Settings', 'emailPassword')
             emailHost = config.get('Settings', 'emailHost')
+            keychainPassword = config.get('Settings', 'keychainPassword')
 
         except Exception as e:
             raise e
@@ -73,7 +81,6 @@ def getConfig():
             print('Your Setting:')
             print('emailFromUser:' + emailFromUser)
             print('emailToUser:' + emailToUser)
-            print('emailPassword:' + emailPassword)
             print('emailHost:' + emailHost)
     global ipaFileDir
     ipaFileDir += ('-' + projectTargetName + '/')
@@ -84,11 +91,13 @@ def setConfig(path):
     global emailToUser
     global emailPassword
     global emailHost
+    global keychainPassword
 
     emailFromUser = input('Input EmailFromUser:')
     emailToUser = input('Input EmailToUser:')
     emailPassword = input('Input EmailPassword:')
     emailHost = input('Input EmailHost:')
+    keychainPassword = input('Input KeychainPassword:')
 
     if emailFromUser == '' or emailToUser == '' or emailPassword == '' or emailHost == '':
         raise ValueError('Please Enter Valid Setting')
@@ -99,6 +108,7 @@ def setConfig(path):
     config.set('Settings', 'emailToUser', emailToUser)
     config.set('Settings', 'emailPassword', emailPassword)
     config.set('Settings', 'emailHost', emailHost)
+    config.set('Settings', 'keychainPassword', keychainPassword)
 
     try:
         os.system('touch Setting.ini')
@@ -266,15 +276,27 @@ def sendMail(to_addr, from_addr, subject, body_text, downloadUrl):
 def main():
     print('*========================*')
     print('Create Ipa Start')
+    # 获取参数
     setOptParse()
+    # 获取项目名称
     getTargetName()
+    # 获取配置文件
     getConfig()
+    # 生成打包文件所在文件夹
     mkdir()
+    # 解锁钥匙串
+    keychainUnlock()
+    # 获取最新代码
     gitPull()
+    # 清理工程
     cleanProject()
+    # 编译
     buildProject()
+    # 打包
     archiveProject()
+    # 上传到fir
     downloadUrl = uploadToFir()
+    # 发送邮件
     sendMail(emailToUser, emailFromUser,
              ipaFileDir, emailBodyText, downloadUrl)
 
