@@ -175,35 +175,33 @@ def getTargetName():
 
 
 def getTargetVersion():
-    def plistBuddy(plistFlistPath):
-        plistFlistPath = plistFlistPath.replace(' ', '\\ ')
+    def plistBuddy(plistFilePath):
+        plistFilePath = plistFilePath.replace(' ', '\\ ')
         ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" %s' %
-                       plistFlistPath)
+                       plistFilePath)
         projectVersion = ret.readline().replace('\n', '')
         ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleDisplayName" %s' %
-                       plistFlistPath)
+                       plistFilePath)
         projectDisplayName = ret.readline().replace('\n', '')
         ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleVersion" %s' %
-                       plistFlistPath)
+                       plistFilePath)
         projectBuildVersion = ret.readline().replace('\n', '')
 
         return (projectDisplayName, projectVersion, projectBuildVersion)
 
     rootDirs = os.listdir('./%s' % projectTargetName)
-    plistFlistPath = None
+    plistFilePath = None
     for subDir in rootDirs:
         if "Info.plist" in subDir:
-            plistFlistPath = ('./%s/Info.plist' % projectTargetName, 'r')
-            return plistBuddy(plistFlistPath)
+            plistFilePath = ('./%s/Info.plist' % projectTargetName)
+            return plistBuddy(plistFilePath)
         elif os.path.isdir('./%s/%s' % (projectTargetName, subDir)):
             childDirs = os.listdir('./%s/%s' % (projectTargetName, subDir))
             for subChildDirs in childDirs:
                 if "Info.plist" in subChildDirs:
-                    # with open('./%s/%s/Info.plist' % (projectTargetName, subDir), 'r') as fileHandler:
-                        # print(fileHandler.read())
-                    plistFlistPath = ('./%s/%s/Info.plist' %
-                                      (projectTargetName, subDir))
-                    return plistBuddy(plistFlistPath)
+                    plistFilePath = ('./%s/%s/Info.plist' %
+                                     (projectTargetName, subDir))
+                    return plistBuddy(plistFilePath)
 
 
 def cleanProject():
@@ -274,8 +272,12 @@ def sendMail(to_addr, from_addr, subject, body_text, downloadUrl):
 
     print('To:', msg['to'])
 
-    emailContent = (subject[0] + ':' + '\n' + '\t' +
-                    projectChangeLog + '\n' + '\t' + body_text + '\n' + '\t' + downloadUrl + '\n')
+    if body_text:
+        emailContent = (subject[0] + ':' + '\n' + '\t' +
+                        projectChangeLog + '\n' + '\t' + body_text + '\n' + '\t' + downloadUrl + '\n')
+    else:
+        emailContent = (subject[0] + ':' + '\n' + '\t' +
+                        projectChangeLog + '\n' + '\t' + downloadUrl + '\n')
     txt = email.mime.text.MIMEText(emailContent)
     msg.attach(txt)
 
@@ -333,4 +335,4 @@ def main():
              projectInfo, emailBodyText, downloadUrl)
 
 if __name__ == '__main__':
-    # main()
+    main()
