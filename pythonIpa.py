@@ -180,9 +180,11 @@ def getTargetVersion():
         ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" %s' %
                        plistFilePath)
         projectVersion = ret.readline().replace('\n', '')
+
         ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleDisplayName" %s' %
                        plistFilePath)
         projectDisplayName = ret.readline().replace('\n', '')
+
         ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleVersion" %s' %
                        plistFilePath)
         projectBuildVersion = ret.readline().replace('\n', '')
@@ -237,7 +239,7 @@ def archiveProject():
         os.system('fir build_ipa %(x)s.xcworkspace -o %(y)s -w -S %(x)s' %
                   {'x': projectTargetName, 'y': ipaRootDir + ipaFileDir})
     else:
-        os.system('fir build_ipa %(x)s.xcworkspace -o %(y)s' %
+        os.system('fir build_ipa %(x)s.xcodeproj -o %(y)s' %
                   {'x': projectTargetName, 'y': ipaRootDir + ipaFileDir})
 
     if isExcuteStepByStep:
@@ -257,9 +259,7 @@ def uploadToFir():
             for info in ret.readlines():
                 if "Published succeed" in info:
                     downloadUrl = info[info.find('http'):]
-                    break
-            break
-    return downloadUrl
+                    return downloadUrl
 
 
 def sendMail(to_addr, from_addr, subject, body_text, downloadUrl):
