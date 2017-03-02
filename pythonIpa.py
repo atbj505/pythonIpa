@@ -174,6 +174,38 @@ def getTargetName():
     print('TargetName:%s' % (projectTargetName))
 
 
+def getTargetVersion():
+    def plistBuddy(plistFlistPath):
+        plistFlistPath = plistFlistPath.replace(' ', '\\ ')
+        ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleShortVersionString" %s' %
+                       plistFlistPath)
+        projectVersion = ret.readline().replace('\n', '')
+        ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleDisplayName" %s' %
+                       plistFlistPath)
+        projectDisplayName = ret.readline().replace('\n', '')
+        ret = os.popen('/usr/libexec/PlistBuddy -c "Print CFBundleVersion" %s' %
+                       plistFlistPath)
+        projectBuildVersion = ret.readline().replace('\n', '')
+
+        return (projectDisplayName, projectVersion, projectBuildVersion)
+
+    rootDirs = os.listdir('./%s' % projectTargetName)
+    plistFlistPath = None
+    for subDir in rootDirs:
+        if "Info.plist" in subDir:
+            plistFlistPath = ('./%s/Info.plist' % projectTargetName, 'r')
+            return plistBuddy(plistFlistPath)
+        elif os.path.isdir('./%s/%s' % (projectTargetName, subDir)):
+            childDirs = os.listdir('./%s/%s' % (projectTargetName, subDir))
+            for subChildDirs in childDirs:
+                if "Info.plist" in subChildDirs:
+                    # with open('./%s/%s/Info.plist' % (projectTargetName, subDir), 'r') as fileHandler:
+                        # print(fileHandler.read())
+                    plistFlistPath = ('./%s/%s/Info.plist' %
+                                      (projectTargetName, subDir))
+                    return plistBuddy(plistFlistPath)
+
+
 def cleanProject():
     print('*========================*')
     print('Clean Project Start')
@@ -238,12 +270,13 @@ def sendMail(to_addr, from_addr, subject, body_text, downloadUrl):
     msg = email.mime.multipart.MIMEMultipart()
     msg['from'] = from_addr
     msg['to'] = to_addr
-    msg['subject'] = subject
+    msg['subject'] = '_'.join(subject)
 
     print('To:', msg['to'])
 
-    txt = email.mime.text.MIMEText(
-        body_text + '\n' + projectChangeLog + '\n' + downloadUrl)
+    emailContent = (subject[0] + ':' + '\n' + '\t' +
+                    projectChangeLog + '\n' + '\t' + body_text + '\n' + '\t' + downloadUrl + '\n')
+    txt = email.mime.text.MIMEText(emailContent)
     msg.attach(txt)
 
     dirs = os.listdir(ipaRootDir + ipaFileDir)
@@ -251,9 +284,6 @@ def sendMail(to_addr, from_addr, subject, body_text, downloadUrl):
     for file in dirs:
         if '.png' in file:
             with open(ipaRootDir + ipaFileDir + file, 'rb') as fileHandler:
-                # image = email.mime.image.MIMEImage(fileHandler.read())
-                # image.add_header('Content-ID', 'image1')
-                # msg.attach(image)
                 image = email.mime.base.MIMEBase('image', 'png', filename=file)
                 image.add_header('Content-Disposition',
                                  'attachment', filename=file)
@@ -280,6 +310,8 @@ def main():
     setOptParse()
     # 获取项目名称
     getTargetName()
+    # 获取版本信息
+    projectInfo = getTargetVersion()
     # 获取配置文件
     getConfig()
     # 生成打包文件所在文件夹
@@ -298,7 +330,7 @@ def main():
     downloadUrl = uploadToFir()
     # 发送邮件
     sendMail(emailToUser, emailFromUser,
-             ipaFileDir, emailBodyText, downloadUrl)
+             projectInfo, emailBodyText, downloadUrl)
 
 if __name__ == '__main__':
-    main()
+    # main()
