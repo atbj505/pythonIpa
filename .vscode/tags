@@ -1,0 +1,56 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.8	//
+archiveProject	../pythonIpa.py	/^def archiveProject():$/;"	kind:function	line:234
+base	../pythonIpa.py	/^import email.mime.base$/;"	kind:namespace	line:6
+buildProject	../pythonIpa.py	/^def buildProject():$/;"	kind:function	line:221
+cleanProject	../pythonIpa.py	/^def cleanProject():$/;"	kind:function	line:209
+configparser	../pythonIpa.py	/^import configparser$/;"	kind:namespace	line:3
+datetime	../pythonIpa.py	/^import datetime$/;"	kind:namespace	line:4
+email	../pythonIpa.py	/^import email.encoders$/;"	kind:namespace	line:5
+email	../pythonIpa.py	/^import email.mime.base$/;"	kind:namespace	line:6
+email	../pythonIpa.py	/^import email.mime.image$/;"	kind:namespace	line:7
+email	../pythonIpa.py	/^import email.mime.multipart$/;"	kind:namespace	line:8
+email	../pythonIpa.py	/^import email.mime.text$/;"	kind:namespace	line:9
+emailBodyText	../pythonIpa.py	/^emailBodyText = None$/;"	kind:variable	line:26
+emailFromUser	../pythonIpa.py	/^emailFromUser = None$/;"	kind:variable	line:22
+emailHost	../pythonIpa.py	/^emailHost = None$/;"	kind:variable	line:25
+emailPassword	../pythonIpa.py	/^emailPassword = None$/;"	kind:variable	line:24
+emailToUser	../pythonIpa.py	/^emailToUser = None$/;"	kind:variable	line:23
+encoders	../pythonIpa.py	/^import email.encoders$/;"	kind:namespace	line:5
+getConfig	../pythonIpa.py	/^def getConfig():$/;"	kind:function	line:56
+getTargetName	../pythonIpa.py	/^def getTargetName():$/;"	kind:function	line:158
+getTargetVersion	../pythonIpa.py	/^def getTargetVersion():$/;"	kind:function	line:177
+getpass	../pythonIpa.py	/^import getpass$/;"	kind:namespace	line:10
+gitPull	../pythonIpa.py	/^def gitPull():$/;"	kind:function	line:37
+image	../pythonIpa.py	/^import email.mime.image$/;"	kind:namespace	line:7
+ipaFileDir	../pythonIpa.py	/^ipaFileDir = datetime.datetime.today().strftime($/;"	kind:variable	line:18
+ipaRootDir	../pythonIpa.py	/^ipaRootDir = "\/Users\/" + getpass.getuser() + "\/Desktop\/"$/;"	kind:variable	line:17
+isExcuteStepByStep	../pythonIpa.py	/^isExcuteStepByStep = False$/;"	kind:variable	line:34
+isWorkSpace	../pythonIpa.py	/^isWorkSpace = False$/;"	kind:variable	line:31
+keychainPassword	../pythonIpa.py	/^keychainPassword = None$/;"	kind:variable	line:33
+keychainUnlock	../pythonIpa.py	/^def keychainUnlock():$/;"	kind:function	line:51
+main	../pythonIpa.py	/^def main():$/;"	kind:function	line:308
+mime	../pythonIpa.py	/^import email.mime.base$/;"	kind:namespace	line:6
+mime	../pythonIpa.py	/^import email.mime.image$/;"	kind:namespace	line:7
+mime	../pythonIpa.py	/^import email.mime.multipart$/;"	kind:namespace	line:8
+mime	../pythonIpa.py	/^import email.mime.text$/;"	kind:namespace	line:9
+mkdir	../pythonIpa.py	/^def mkdir():$/;"	kind:function	line:45
+multipart	../pythonIpa.py	/^import email.mime.multipart$/;"	kind:namespace	line:8
+optparse	../pythonIpa.py	/^import optparse$/;"	kind:namespace	line:11
+os	../pythonIpa.py	/^import os$/;"	kind:namespace	line:12
+plistBuddy	../pythonIpa.py	/^    def plistBuddy(plistFilePath):$/;"	kind:function	line:178
+projectChangeLog	../pythonIpa.py	/^projectChangeLog = None$/;"	kind:variable	line:30
+projectTargetName	../pythonIpa.py	/^projectTargetName = None$/;"	kind:variable	line:29
+pythonIpa.py	../pythonIpa.py	1;"	kind:file	line:1
+removeConfig	../pythonIpa.py	/^def removeConfig():$/;"	kind:function	line:121
+sendMail	../pythonIpa.py	/^def sendMail(to_addr, from_addr, subject, body_text, downloadUrl):$/;"	kind:function	line:265
+setConfig	../pythonIpa.py	/^def setConfig(path):$/;"	kind:function	line:89
+setOptParse	../pythonIpa.py	/^def setOptParse():$/;"	kind:function	line:126
+smtplib	../pythonIpa.py	/^import smtplib$/;"	kind:namespace	line:13
+sys	../pythonIpa.py	/^import sys$/;"	kind:namespace	line:14
+text	../pythonIpa.py	/^import email.mime.text$/;"	kind:namespace	line:9
+uploadToFir	../pythonIpa.py	/^def uploadToFir():$/;"	kind:function	line:249
